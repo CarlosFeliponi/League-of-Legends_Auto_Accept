@@ -1,0 +1,5 @@
+pyautogui
+opencv-python
+numpy
+tk
+cx_Freeze ; sys_platform == 'win32'

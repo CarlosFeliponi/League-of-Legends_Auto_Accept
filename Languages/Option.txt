@@ -1,0 +1,8 @@
+Language = Portuguese
+
+----
+
+Currently supported:
+
+*Portuguese
+*English
