@@ -33,13 +33,34 @@ def load_images(language):
     notaccept_img = cv2.imread(os.path.join(lang_path, "notaccept.png"))
     return accept_img, notaccept_img
 
-def find_on_screen(template, threshold=0.8):
-    screenshot = pyautogui.screenshot()
-    screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-    res = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
-    loc = np.where(res >= threshold)
-    for pt in zip(*loc[::-1]):
-        return pt  # Return first match
+def find_on_screen(template, threshold=0.7):
+    """
+    Search for the template image on the screen using grayscale template matching.
+    Returns the top-left (x, y) coordinate of the best match if its normalized
+    correlation exceeds the threshold; otherwise returns None.
+    """
+    try:
+        # Take a screenshot and convert to grayscale
+        screenshot = pyautogui.screenshot()
+        screenshot_gray = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2GRAY)
+        # Verify template
+        if template is None:
+            return None
+        # Drop alpha channel if present, then convert template to grayscale
+        if template.ndim == 3:
+            if template.shape[2] == 4:
+                template = cv2.cvtColor(template, cv2.COLOR_BGRA2BGR)
+            template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        else:
+            template_gray = template
+        # Run template matching
+        res = cv2.matchTemplate(screenshot_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+        # Locate best match location and its score
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        if max_val >= threshold:
+            return max_loc  # Top-left corner of the match
+    except Exception as e:
+        print(f"[AutoAccept] Error during template matching: {e}")
     return None
 
 class AutoAcceptApp:
