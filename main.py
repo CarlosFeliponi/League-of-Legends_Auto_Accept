@@ -7,7 +7,8 @@ import cv2
 import numpy as np
 import pyautogui
 
-LANGUAGES_DIR = "Languages"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LANGUAGES_DIR = os.path.join(BASE_DIR, "Languages")
 OPTION_FILE = os.path.join(LANGUAGES_DIR, "Option.txt")
 
 def get_available_languages():
@@ -103,16 +104,23 @@ class AutoAcceptApp:
 
     def run(self):
         lang = self.selected_language.get()
-        accept_img, notaccept_img = load_images(lang)
+        lang_path = os.path.join(LANGUAGES_DIR, lang)
+        accept_path = os.path.join(lang_path, "accept.png")
+        notaccept_path = os.path.join(lang_path, "notaccept.png")
         while self.running:
-            pt = find_on_screen(accept_img)
+            pt = pyautogui.locateCenterOnScreen(accept_path, confidence=0.7)
             if pt:
-                pyautogui.click(pt[0] + accept_img.shape[1]//2, pt[1] + accept_img.shape[0]//2)
+                # Click the center of the accept button
+                try:
+                    x, y = pt
+                except (TypeError, ValueError):
+                    x, y = pt.x, pt.y
+                pyautogui.click(x, y)
                 self.running = False
                 self.root.after(0, lambda: self.toggle_btn.config(text="ON"))
                 self.root.after(0, lambda: self.status_label.config(text="Status: OFF"))
                 break
-            pt_not = find_on_screen(notaccept_img)
+            pt_not = pyautogui.locateCenterOnScreen(notaccept_path, confidence=0.7)
             if pt_not:
                 # Someone didn't accept, keep running
                 pass
